@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Rover — Pipeline Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f0d;
+    color: #c2c0b6;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 36px 16px;
+    gap: 24px;
+  }
+
+  h1 { font-size: 12px; color: #444; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Pipeline */
+  #pipeline {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .stage {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0;
+    border-left: 1px solid rgba(255,255,255,0.06);
+    padding-left: 20px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .stage.active { border-color: currentColor; }
+  .stage.done   { border-color: rgba(255,255,255,0.15); }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: #0f0f0d;
+    position: absolute;
+    left: -5px; top: 18px;
+    transition: background 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+  .stage.active .dot { background: currentColor; border-color: currentColor; }
+  .stage.done   .dot { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.2); }
+
+  .stage-body { flex: 1; }
+
+  .stage-title {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    transition: color 0.2s;
+    margin-bottom: 4px;
+  }
+  .stage.active .stage-title, .stage.done .stage-title { color: currentColor; }
+
+  .stage-detail {
+    font-size: 11px;
+    color: #444;
+    line-height: 1.7;
+    transition: color 0.3s;
+    min-height: 16px;
+  }
+  .stage.active .stage-detail { color: #6b6960; }
+  .stage.done   .stage-detail { color: #6b6960; }
+
+  .stage-output {
+    font-size: 12px;
+    margin-top: 6px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    line-height: 1.6;
+    display: none;
+    white-space: pre;
+  }
+  .stage.active .stage-output,
+  .stage.done   .stage-output { display: block; }
+
+  /* Color per stage */
+  .s0 { color: #378ADD; }
+  .s1 { color: #9F77DD; }
+  .s2 { color: #5DCAA5; }
+  .s3 { color: #EF9F27; }
+  .s4 { color: #E24B4A; }
+
+  /* Output box */
+  #result {
+    width: 100%; max-width: 700px;
+    background: #131311;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  #result-label { font-size: 10px; color: #444; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  #result-text  { font-size: 13px; color: #444; line-height: 1.8; white-space: pre; min-height: 44px; }
+
+  button {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #c2c0b6;
+    padding: 10px 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.06em;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  button:hover   { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
+  button:disabled { opacity: 0.35; cursor: default; }
+</style>
+</head>
+<body>
+
+<h1>AI Rover · Computer Vision Pipeline</h1>
+
+<div id="pipeline">
+
+  <div class="stage s0" id="s0">
+    <div class="dot"></div>
+    <div class="stage-body">
+      <div class="stage-title">1 · Camera input</div>
+      <div class="stage-detail">raw frame capture from onboard camera</div>
+      <div class="stage-output" id="o0"></div>
+    </div>
+  </div>
+
+  <div class="stage s1" id="s1">
+    <div class="dot"></div>
+    <div class="stage-body">
+      <div class="stage-title">2 · Frame preprocessing</div>
+      <div class="stage-detail">normalization · resizing · noise reduction</div>
+      <div class="stage-output" id="o1"></div>
+    </div>
+  </div>
+
+  <div class="stage s2" id="s2">
+    <div class="dot"></div>
+    <div class="stage-body">
+      <div class="stage-title">3 · Feature extraction  <span style="font-weight:normal;opacity:0.5">(OpenCV)</span></div>
+      <div class="stage-detail">edge detection · contour analysis</div>
+      <div class="stage-output" id="o2"></div>
+    </div>
+  </div>
+
+  <div class="stage s3" id="s3">
+    <div class="dot"></div>
+    <div class="stage-body">
+      <div class="stage-title">4 · ML model  <span style="font-weight:normal;opacity:0.5">(COCO)</span></div>
+      <div class="stage-detail">object classification → spatial map</div>
+      <div class="stage-output" id="o3"></div>
+    </div>
+  </div>
+
+  <div class="stage s4" id="s4">
+    <div class="dot"></div>
+    <div class="stage-body">
+      <div class="stage-title">5 · Decision → Navigation</div>
+      <div class="stage-detail">decision layer feeds navigation logic → motor command</div>
+      <div class="stage-output" id="o4"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="result">
+  <div id="result-label">final motor command</div>
+  <div id="result-text">press "run cycle" to simulate a frame</div>
+</div>
+
+<button id="btn" onclick="run()">Run cycle</button>
+
+<script>
+const scenarios = [
+  {
+    o0: 'frame #041  640×480px  RGB',
+    o1: 'normalized [0,1]  →  resized 224×224  →  gaussian blur σ=1.2',
+    o2: 'canny edges detected  |  contours: 4 objects found',
+    o3: 'obstacle       [0.82]  @ region: front-left\nnavigable      [0.91]  @ region: front-right\nunknown        [0.31]  @ region: far edge',
+    o4: 'decision: obstacle front-left → steer right\ncommand:  RIGHT +25°  |  speed –15%',
+    result: '→ RIGHT +25°  |  speed –15%'
+  },
+  {
+    o0: 'frame #078  640×480px  RGB',
+    o1: 'normalized [0,1]  →  resized 224×224  →  gaussian blur σ=0.9',
+    o2: 'canny edges detected  |  contours: 1 object (wall, left edge)',
+    o3: 'navigable      [0.95]  @ region: center\nnavigable      [0.88]  @ region: front-right\nobstacle       [0.74]  @ region: far-left',
+    o4: 'decision: clear path ahead → maintain heading\ncommand:  FORWARD  |  speed nominal',
+    result: '→ FORWARD  |  speed nominal'
+  },
+  {
+    o0: 'frame #113  640×480px  RGB',
+    o1: 'normalized [0,1]  →  resized 224×224  →  gaussian blur σ=1.5  (low light)',
+    o2: 'canny edges detected  |  contours: 2 objects  |  low confidence',
+    o3: 'unknown        [0.61]  @ region: center\nobstacle       [0.55]  @ region: front\nnavigable      [0.40]  @ region: right',
+    o4: 'decision: uncertain map → reduce speed, rescan\ncommand:  SLOW 50%  |  STOP + rescan in 0.5s',
+    result: '→ SLOW 50%  |  rescan triggered'
+  },
+];
+
+let busy = false;
+
+async function run() {
+  if (busy) return;
+  busy = true;
+  document.getElementById('btn').disabled = true;
+  document.getElementById('result-text').style.color = '#444';
+  document.getElementById('result-text').textContent = '...';
+
+  resetAll();
+  await delay(100);
+
+  const s = scenarios[Math.floor(Math.random() * scenarios.length)];
+  const ids = ['s0','s1','s2','s3','s4'];
+  const outputs = [s.o0, s.o1, s.o2, s.o3, s.o4];
+  const colors = ['#378ADD','#9F77DD','#5DCAA5','#EF9F27','#E24B4A'];
+
+  for (let i = 0; i < ids.length; i++) {
+    const el = document.getElementById(ids[i]);
+    el.classList.add('active');
+    const out = document.getElementById('o' + i);
+    out.style.color = colors[i];
+    out.textContent = outputs[i];
+    await delay(650);
+    el.classList.remove('active');
+    el.classList.add('done');
+  }
+
+  const resultEl = document.getElementById('result-text');
+  resultEl.style.color = '#1D9E75';
+  resultEl.textContent = s.result;
+
+  busy = false;
+  document.getElementById('btn').disabled = false;
+}
+
+function resetAll() {
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('s' + i);
+    el.classList.remove('active', 'done');
+    document.getElementById('o' + i).textContent = '';
+  }
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
