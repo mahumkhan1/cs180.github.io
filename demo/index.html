@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Interactive Mesh Painter — Mahum Khan</title>
+
+    <!-- Resolves bare "three" imports to CDN — no bundler needed -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+      }
+    }
+    </script>
+
+    <script type="module" src="scripts/main.js"></script>
+    <link rel="stylesheet" href="styles/stylesheet.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+    <style>
+      #back-link {
+        position: fixed;
+        top: 12px; left: 14px;
+        z-index: 9999;
+        font-family: system-ui, sans-serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #e8dfc4;
+        background: rgba(13,13,20,0.82);
+        border: 1px solid rgba(201,185,122,0.35);
+        padding: 0.35rem 0.75rem;
+        border-radius: 3px;
+        text-decoration: none;
+        backdrop-filter: blur(6px);
+        transition: border-color 0.2s, color 0.2s;
+      }
+      #back-link:hover { border-color: #c9b97a; color: #c9b97a; }
+    </style>
+  </head>
+
+  <body>
+    <a id="back-link" href="../index.html">← Portfolio</a>
+
+    <div id="viewer"></div>
+    
+        <!-- draiwing app part -->
+        <div class="container">
+        
+        <section class="drawing-board">
+            <canvas id="uv-layer"></canvas>
+            <canvas id="drawingapp"></canvas>
+        </section>
+
+        <section class="tools-board">
+            <div class="row">
+                <div class="row buttons">
+                    <button class="generate-mesh">Generate a Mesh</button>
+                </div>
+                <label class="title">Options</label>
+            
+                
+                <ul class="options">
+                    <li class="option active tool" id="brush">
+                        <img src="icons/brush.svg" alt="">
+                        <span>Brush</span>
+                    </li>
+                    <li class="option tool" id="eraser">
+                        <img src="icons/eraser.svg" alt="">
+                        <span>Eraser</span>
+                    </li>
+                    <li>
+                        <span>Size</span>
+                    </li>
+                    <li class="option">
+                        <input type="range" id="size-slider" min="1" max="30" value="5">
+                    </li>
+                    <li>
+                        <span>Opacity</span>
+                    </li>
+                    <li class="option">
+                        
+                        
+                        <input type="range" id="opacity-slider" min="0" max="100" value="100">
+                    </li>
+                </ul>
+            </div>
+            <div class="row colors">
+                <label class="title"> Colors</label>
+                <ul class="options">
+                    <li class="option"></li>
+                    <li class="option selected"></li>
+                    <li class="option"></li>
+                    <li class="option"></li>
+                    <li class="option">
+                        <input type="color" id="color-picker" value="#4A98F7">
+                    </li>
+                </ul>
+            </div>
+            <div class="row buttons">
+
+                <button class="import-glb">Import GLTF/GLB</button>
+                <button class="import-img">Import Texture</button>
+                <button id="uv-button">Toggle UV Display</button>
+                <button class="clear-canvas">Clear Canvas</button>
+                <button class="save-img">Download Texture</button>
+            </div>
+        </section>
+        </div>
+
+  <div id="circle"></div>
+
+  </body>
+</html>

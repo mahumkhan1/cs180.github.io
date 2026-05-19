@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Mahum Khan — CS + Astrophysics, UC Berkeley">
   <title>Mahum Khan</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -580,8 +581,11 @@
     <h2 class="section-title">Projects</h2>
 
     <div class="card">
-      <div class="card-title">
-        <a href="https://beckyfeng08.github.io/subpages/cs184/finalproject/finalprojectpage.html" target="_blank" rel="noopener">Interactive Mesh Painter</a>
+      <div class="card-header">
+        <div class="card-title">
+          <a href="https://beckyfeng08.github.io/subpages/cs184/finalproject/finalprojectpage.html" target="_blank" rel="noopener">Interactive Mesh Painter</a>
+        </div>
+        <a href="demo/index.html" target="_blank" style="font-size:0.72rem;letter-spacing:0.09em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,185,122,0.35);padding:0.22rem 0.65rem;border-radius:2px;white-space:nowrap;transition:all 0.2s;align-self:flex-start;" onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,185,122,0.08)'" onmouseout="this.style.background=''">Live Demo ↗</a>
       </div>
       <div class="card-sub">JavaScript · Three.js · WebGL</div>
       <p>Developed an interactive interface for painting texture maps on 3D meshes or UV coordinates; implemented WebGL viewer with mesh/texture loading and raycasting.</p>
@@ -601,6 +605,12 @@
       </div>
       <div class="card-sub">Python · NumPy</div>
       <p>Processed Leuschner Telescope data and applied Keplerian orbit models to generate interpretable visualizations.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Resume AI Chrome Extension</div>
+      <div class="card-sub">JavaScript · Chrome Extensions API · AI/ML</div>
+      <p>Built a Chrome extension that analyzes job postings and provides AI-powered resume tailoring suggestions; highlights keyword gaps and recommends targeted edits to improve ATS compatibility.</p>
     </div>
   </section>
 
