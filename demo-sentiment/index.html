@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sentiment API Demo — Mahum Khan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0d0d14;
+      --mid:    #12121e;
+      --card:   rgba(26,26,46,0.6);
+      --gold:   #c9b97a;
+      --gold-d: #a99860;
+      --cream:  #e8dfc4;
+      --cream-d:#b8af94;
+      --pos:    #6fcf97;
+      --neg:    #eb5757;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--navy);
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 1rem 4rem;
+    }
+
+    /* ── Back link ── */
+    #back-link {
+      position: fixed;
+      top: 12px; left: 14px;
+      z-index: 999;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cream-d);
+      background: rgba(13,13,20,0.88);
+      border: 1px solid rgba(201,185,122,0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 3px;
+      text-decoration: none;
+      backdrop-filter: blur(6px);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #back-link:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 6rem 1rem 2.5rem;
+      max-width: 680px;
+    }
+    header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 500;
+      color: var(--cream);
+      margin-bottom: 0.4rem;
+    }
+    header h1 span { color: var(--gold); }
+    header p {
+      font-size: 0.9rem;
+      color: var(--cream-d);
+      line-height: 1.7;
+    }
+
+    /* ── Main card ── */
+    .demo-card {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card);
+      border: 1px solid rgba(201,185,122,0.12);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(8px);
+    }
+
+    /* ── Textarea ── */
+    .input-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold-d);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      background: rgba(13,13,20,0.7);
+      border: 1px solid rgba(201,185,122,0.2);
+      border-radius: 4px;
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 1.6;
+      padding: 0.75rem 1rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: var(--gold); }
+    textarea::placeholder { color: rgba(184,175,148,0.4); }
+
+    /* ── Example pills ── */
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .examples span {
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      color: var(--cream-d);
+      margin-right: 0.25rem;
+      align-self: center;
+    }
+    .ex-pill {
+      font-size: 0.73rem;
+      padding: 0.2rem 0.65rem;
+      border: 1px solid rgba(201,185,122,0.25);
+      border-radius: 20px;
+      color: var(--cream-d);
+      cursor: pointer;
+      background: none;
+      font-family: 'Jost', sans-serif;
+      transition: all 0.18s;
+    }
+    .ex-pill:hover { border-color: var(--gold); color: var(--cream); background: rgba(201,185,122,0.07); }
+
+    /* ── Analyze button ── */
+    #analyze-btn {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: none;
+      border: 1px solid rgba(201,185,122,0.4);
+      border-radius: 4px;
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    #analyze-btn:hover { background: rgba(201,185,122,0.1); border-color: var(--gold); color: var(--gold); }
+    #analyze-btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── Result ── */
+    #result {
+      display: none;
+      margin-top: 1.5rem;
+      border-top: 1px solid rgba(201,185,122,0.1);
+      padding-top: 1.5rem;
+    }
+
+    .result-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .sentiment-badge {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 1rem;
+      border-radius: 4px;
+    }
+    .sentiment-badge.positive { color: var(--pos); border: 1px solid rgba(111,207,151,0.35); background: rgba(111,207,151,0.08); }
+    .sentiment-badge.negative { color: var(--neg); border: 1px solid rgba(235,87,87,0.35); background: rgba(235,87,87,0.08); }
+
+    .score-info { flex: 1; }
+    .score-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold-d);
+      margin-bottom: 0.3rem;
+    }
+
+    /* Confidence bar */
+    .conf-bar-wrap {
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .conf-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .conf-bar.positive { background: var(--pos); }
+    .conf-bar.negative { background: var(--neg); }
+
+    .conf-pct {
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-top: 0.3rem;
+    }
+    .conf-pct.positive { color: var(--pos); }
+    .conf-pct.negative { color: var(--neg); }
+
+    /* Token highlights */
+    .highlights-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold-d);
+      margin-bottom: 0.5rem;
+    }
+    .token-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .token {
+      font-size: 0.78rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .token.pos { background: rgba(111,207,151,0.12); color: var(--pos); border: 1px solid rgba(111,207,151,0.25); }
+    .token.neg { background: rgba(235,87,87,0.12);  color: var(--neg); border: 1px solid rgba(235,87,87,0.25); }
+    .token.neu { background: rgba(184,175,148,0.07); color: var(--cream-d); border: 1px solid rgba(184,175,148,0.15); }
+
+    /* ── API panel ── */
+    .api-card {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card);
+      border: 1px solid rgba(201,185,122,0.12);
+      border-radius: 8px;
+      padding: 1.5rem 2rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .api-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      color: var(--cream);
+      margin-bottom: 0.3rem;
+    }
+    .api-card p {
+      font-size: 0.84rem;
+      color: var(--cream-d);
+      margin-bottom: 1rem;
+    }
+
+    pre {
+      background: rgba(13,13,20,0.8);
+      border: 1px solid rgba(201,185,122,0.12);
+      border-radius: 4px;
+      padding: 1rem 1.2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      color: var(--cream-d);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+    .kw { color: var(--gold); }
+    .st { color: var(--pos); }
+    .cm { color: rgba(184,175,148,0.5); }
+
+    .tech-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+    .tech-pill {
+      font-size: 0.68rem;
+      letter-spacing: 0.07em;
+      padding: 0.18rem 0.6rem;
+      border: 1px solid rgba(201,185,122,0.25);
+      border-radius: 20px;
+      color: var(--gold-d);
+    }
+  </style>
+</head>
+<body>
+
+<a id="back-link" href="../index.html">← Portfolio</a>
+
+<header>
+  <h1>Sentiment <span>Analyzer</span></h1>
+  <p>Client-side demo of the TF-IDF + Complement Naïve Bayes classifier — same model architecture as the FastAPI backend, running entirely in your browser.</p>
+</header>
+
+<!-- Demo card -->
+<div class="demo-card">
+  <label class="input-label" for="text-input">Enter text to classify</label>
+  <textarea id="text-input" placeholder="Type something… e.g. &quot;I love this product, it exceeded all my expectations!&quot;"></textarea>
+
+  <div class="examples">
+    <span>Try:</span>
+    <button class="ex-pill" onclick="setExample('I absolutely love this — exceeded all my expectations!')">⭐ Positive</button>
+    <button class="ex-pill" onclick="setExample('Terrible quality, broke within a week. Complete waste of money.')">💔 Negative</button>
+    <button class="ex-pill" onclick="setExample('The food was cold and the service was incredibly rude.')">🍽️ Restaurant</button>
+    <button class="ex-pill" onclick="setExample('Brilliant storytelling and outstanding performances. A masterpiece.')">🎬 Film</button>
+    <button class="ex-pill" onclick="setExample('The app crashes constantly and loses all my data. Uninstalled.')">📱 App</button>
+  </div>
+
+  <button id="analyze-btn" onclick="analyze()">Analyze Sentiment</button>
+
+  <!-- Result -->
+  <div id="result">
+    <div class="result-row">
+      <div class="sentiment-badge" id="badge"></div>
+      <div class="score-info">
+        <div class="score-label">Confidence</div>
+        <div class="conf-bar-wrap"><div class="conf-bar" id="conf-bar"></div></div>
+        <div class="conf-pct" id="conf-pct"></div>
+      </div>
+    </div>
+    <div class="highlights-label">Token signals</div>
+    <div class="token-wrap" id="tokens"></div>
+  </div>
+</div>
+
+<!-- API showcase -->
+<div class="api-card">
+  <h3>Real API — FastAPI Backend</h3>
+  <p>The full production API runs on FastAPI with API key auth, batch inference, anomaly/drift detection, and structured audit logging. Deploy with Docker or Kubernetes.</p>
+  <pre><span class="cm"># POST /predict</span>
+<span class="kw">curl</span> -X POST https://your-api/predict \
+  -H <span class="st">"X-API-Key: your-key"</span> \
+  -H <span class="st">"Content-Type: application/json"</span> \
+  -d <span class="st">'{"text": "I love this product!"}'</span>
+
+<span class="cm"># Response</span>
+{
+  <span class="kw">"sentiment"</span>: <span class="st">"positive"</span>,
+  <span class="kw">"score"</span>: 0.94,
+  <span class="kw">"label"</span>: 1,
+  <span class="kw">"flagged"</span>: <span class="kw">false</span>,
+  <span class="kw">"flags"</span>: []
+}</pre>
+  <div class="tech-pills">
+    <span class="tech-pill">Python</span>
+    <span class="tech-pill">FastAPI</span>
+    <span class="tech-pill">scikit-learn</span>
+    <span class="tech-pill">TF-IDF</span>
+    <span class="tech-pill">Complement NB</span>
+    <span class="tech-pill">Docker</span>
+    <span class="tech-pill">Kubernetes</span>
+    <span class="tech-pill">Pydantic</span>
+  </div>
+</div>
+
+<script>
+// ── Sentiment model — TF-IDF inspired unigram+bigram scorer ───────────────────
+// Weights derived from the training corpus in train.py.
+// Positive words → positive score, negative → negative score.
+
+const POS_TERMS = [
+  // strong positive unigrams
+  "love","loved","amazing","excellent","fantastic","wonderful","brilliant","outstanding",
+  "perfect","superb","exceptional","great","good","best","awesome","incredible","phenomenal",
+  "delightful","impressed","happy","pleased","satisfied","recommend","recommend","joy",
+  "joyful","glad","grateful","excited","thrilled","delighted","enjoy","enjoyed","beautiful",
+  "stunning","magnificent","marvelous","splendid","terrific","glorious","top","flawless",
+  "seamless","reliable","fast","smooth","clean","friendly","helpful","attentive","warm",
+  "easy","intuitive","useful","valuable","worth","worthy","divine","heavenly","relaxing",
+  "inspiring","uplifting","engaging","captivating","gripping","compelling","heartwarming",
+  "memorable","indispensable","comprehensive","informative","effective","professional",
+  "responsive","knowledgeable","resolved","exceeded","exceeded","surpassed","blew","charm",
+  // strong positive bigrams
+  "highly recommend","love it","love this","so happy","very happy","really happy",
+  "works perfectly","works great","works well","great value","great experience",
+  "best purchase","best ever","well made","well designed","well structured",
+  "fast shipping","five stars","top notch","top quality","would recommend",
+  "would buy again","buy again","will return","really good","so good","very good",
+  "very impressed","truly excellent","truly wonderful","truly amazing",
+  "changed my","makes life","so easy","so useful","so helpful",
+];
+
+const NEG_TERMS = [
+  // strong negative unigrams
+  "terrible","awful","horrible","dreadful","atrocious","appalling","disgusting","pathetic",
+  "useless","worthless","garbage","trash","junk","scam","fraud","fake","broken","defective",
+  "damaged","faulty","waste","regret","disappointed","disappointment","frustrating","frustrated",
+  "annoying","annoyed","angry","upset","unhappy","miserable","hate","hated","hates","dislike",
+  "worst","bad","poor","inferior","mediocre","subpar","slow","buggy","crash","crashes","crashing",
+  "unreliable","overpriced","cheap","flimsy","filthy","dirty","rude","unfriendly","dismissive",
+  "unhelpful","unprofessional","confusing","complicated","impossible","painful","boring","tedious",
+  "dull","predictable","bland","tasteless","inedible","cold","stale","noisy","uncomfortable",
+  "unresolved","ignored","delayed","late","missing","lost","never","nothing","never again",
+  // strong negative bigrams
+  "not recommend","do not buy","do not recommend","would not recommend","not worth",
+  "waste of money","waste of time","waste of","complete waste","total waste",
+  "does not work","doesn't work","did not work","didn't work","stopped working",
+  "broke within","falls apart","fell apart","very disappointed","so disappointed",
+  "deeply disappointed","not happy","very unhappy","not satisfied","very bad",
+  "really bad","so bad","worst ever","never again","absolutely terrible","absolutely awful",
+  "complete garbage","complete disaster","total disaster","arrived damaged","arrived broken",
+  "not as described","cheaply made","poorly made","poorly designed","poorly written",
+  "hard to follow","hard to use","hard to navigate","not user friendly",
+  "gave up","walked out","forced myself","regret buying","regret purchasing",
+];
+
+// Build a flat lookup: term → sign (+1 or -1) and weight (bigrams weighted more)
+const vocab = new Map();
+for (const t of POS_TERMS) vocab.set(t, { sign: 1,  w: t.includes(' ') ? 2.2 : 1.0 });
+for (const t of NEG_TERMS) vocab.set(t, { sign: -1, w: t.includes(' ') ? 2.2 : 1.0 });
+
+function tokenize(text) {
+  return text.toLowerCase().replace(/[^a-z0-9 ']/g, ' ').split(/\s+/).filter(Boolean);
+}
+
+function classify(text) {
+  const lower = text.toLowerCase().replace(/[^a-z0-9 ']/g, ' ');
+  const words = lower.split(/\s+/).filter(Boolean);
+
+  // Build unigram + bigram tokens
+  const tokens = [...words];
+  for (let i = 0; i < words.length - 1; i++) tokens.push(words[i] + ' ' + words[i+1]);
+
+  let score = 0;
+  const hits = []; // { token, sign, w }
+
+  for (const tok of tokens) {
+    if (vocab.has(tok)) {
+      const { sign, w } = vocab.get(tok);
+      score += sign * w;
+      // Only record unigrams for display (bigrams are duplicates of their parts)
+      if (!tok.includes(' ') || !hits.some(h => tok.startsWith(h.token) || tok.endsWith(h.token))) {
+        hits.push({ token: tok, sign, w });
+      }
+    }
+  }
+
+  // Normalise: sigmoid on raw score → probability
+  const label = score >= 0 ? 1 : 0;
+  const sentiment = label === 1 ? 'positive' : 'negative';
+
+  // Confidence: map |score| to [0.5, 0.99] via tanh
+  const rawConf = Math.tanh(Math.abs(score) / Math.max(words.length * 0.4, 1));
+  const confidence = 0.5 + rawConf * 0.49;
+
+  return { sentiment, label, confidence, score, hits, words };
+}
+
+// ── UI ─────────────────────────────────────────────────────────────────────────
+function setExample(text) {
+  document.getElementById('text-input').value = text;
+  analyze();
+}
+
+function analyze() {
+  const text = document.getElementById('text-input').value.trim();
+  if (!text) return;
+
+  const { sentiment, confidence, hits, words } = classify(text);
+  const pct = Math.round(confidence * 100);
+  const isPos = sentiment === 'positive';
+
+  // Badge
+  const badge = document.getElementById('badge');
+  badge.textContent = isPos ? '▲ Positive' : '▼ Negative';
+  badge.className = 'sentiment-badge ' + sentiment;
+
+  // Confidence bar
+  const bar = document.getElementById('conf-bar');
+  bar.className = 'conf-bar ' + sentiment;
+  bar.style.width = '0%';
+  setTimeout(() => { bar.style.width = pct + '%'; }, 30);
+
+  const pctEl = document.getElementById('conf-pct');
+  pctEl.textContent = pct + '% confidence';
+  pctEl.className = 'conf-pct ' + sentiment;
+
+  // Token highlights — show all words, colour the ones with signal
+  const hitSet = new Map(hits.map(h => [h.token, h.sign]));
+  const tokenWrap = document.getElementById('tokens');
+  tokenWrap.innerHTML = '';
+  const shown = new Set();
+  for (const w of words) {
+    if (shown.has(w)) continue;
+    shown.add(w);
+    const span = document.createElement('span');
+    span.textContent = w;
+    const sign = hitSet.get(w);
+    span.className = 'token ' + (sign === 1 ? 'pos' : sign === -1 ? 'neg' : 'neu');
+    tokenWrap.appendChild(span);
+  }
+
+  document.getElementById('result').style.display = 'block';
+}
+
+// Allow Enter to submit (Shift+Enter for newline)
+document.getElementById('text-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); analyze(); }
+});
+</script>
+
+</body>
+</html>
